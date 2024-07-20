@@ -280,7 +280,10 @@ class AutoCommit {
   }
 
   exec() {
-    program.option('-git, --auto-git', 'wether to use git').parse(process.argv);
+    program
+      .option('-git, --auto-git', 'wether to use git', false)
+      .allowUnknownOption(true)
+      .parse(process.argv);
     const options = program.opts();
     if (options.autoGit) {
       this.gitCheck();
