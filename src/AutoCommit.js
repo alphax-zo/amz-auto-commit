@@ -187,47 +187,87 @@ class AutoCommit {
     // 该方法可以独立出来作为单独的命令，供添加SVN忽略文件使用
 
     // 全局
-    const addedGlobal = execSync(`${this.svn} propget svn:global-ignores .`, {
-      encoding: "utf-8",
-    });
+    try {
+      const addedGlobal = execSync(`${this.svn} propget svn:global-ignores .`, {
+        encoding: "utf-8",
+      });
 
-    // 本地
-    if (!addedGlobal) {
-      execSync(
-        `${this.svn} propset svn:global-ignores "node_modules .happypack .git" .`,
-        {
-          encoding: "utf-8",
-          stdio: "inherit",
-        }
-      );
-    }
-
-    const added = execSync(`${this.svn} propget svn:ignore .`, {
-      encoding: "utf-8",
-    });
-
-    if (!added) {
-      try {
-        const svnignore = fileUtils.getPath("svnignore.txt", process.cwd());
-        fs.accessSync(svnignore, fs.constants.F_OK);
-        this.svnAddIgnoreExec();
-      } catch (err) {
-        const target = fileUtils.getPath("svnignore.txt", process.cwd());
-        fileUtils.fsCopy("../../svnignore.txt", target, () => {
-          execSync(`${this.svn} cleanup`, {
+      // 本地
+      if (!addedGlobal) {
+        execSync(
+          `${this.svn} propset svn:global-ignores "node_modules .happypack .git" .`,
+          {
             encoding: "utf-8",
             stdio: "inherit",
-          });
-
-          this.svnAddIgnoreExec();
-          this.exec();
-        });
-        // console.log(chalk.red(err.message));
-        // console.log(chalk.yellow('请配置【SVN】忽略文件！'));
+          }
+        );
       }
-    } else {
-      if (typeof callback === "function") callback();
+
+      const added = execSync(`${this.svn} propget svn:ignore .`, {
+        encoding: "utf-8",
+      });
+
+      if (!added) {
+        try {
+          const svnignore = fileUtils.getPath("svnignore.txt", process.cwd());
+          fs.accessSync(svnignore, fs.constants.F_OK);
+          this.svnAddIgnoreExec();
+        } catch (err) {
+          const target = fileUtils.getPath("svnignore.txt", process.cwd());
+          fileUtils.fsCopy("../../svnignore.txt", target, () => {
+            execSync(`${this.svn} cleanup`, {
+              encoding: "utf-8",
+              stdio: "inherit",
+            });
+
+            this.svnAddIgnoreExec();
+            this.exec();
+          });
+          // console.log(chalk.red(err.message));
+          // console.log(chalk.yellow('请配置【SVN】忽略文件！'));
+        }
+      } else {
+        if (typeof callback === "function") callback();
+      }
+    } catch (err) {
+      this.svnInit();
     }
+  }
+
+  svnInit() {
+    const checkoutQS = [
+      {
+        name: "path",
+        type: "input",
+        message: chalk.magenta(`请输入【SVN】Checkout项目地址:`),
+        default: null,
+      },
+      {
+        name: "username",
+        type: "input",
+        message: chalk.magenta(`请输入【SVN】账号:`),
+        default: null,
+      },
+      {
+        name: "password",
+        type: "input",
+        message: chalk.magenta(`请输入【SVN】密码:`),
+        default: null,
+      },
+    ];
+
+    process.nextTick(async () => {
+      const { path, username, password } = await inquirer.prompt(checkoutQS);
+      let tmpPath = path.replace(/\\/g, "/");
+      const projName = tmpPath.slice(tmpPath.lastIndexOf("/") + 1);
+
+      execSync(`${this.svn} checkout ${path} ${projName} --username ${username} --password ${password} --force-interactive`, {
+        encoding: "utf-8",
+        stdio: "inherit",
+      });
+      
+      console.log("🚀 ~ process.nextTick ~ this.svn:", this.svn)
+    });
   }
 
   svnCheckExist() {
