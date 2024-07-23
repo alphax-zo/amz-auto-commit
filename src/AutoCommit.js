@@ -183,7 +183,10 @@ class AutoCommit {
     });
   }
 
-  svnAddIgnoreExec(callback) {
+  svnAddIgnored(callback) {
+    // 该方法可以独立出来作为单独的命令，供添加SVN忽略文件使用
+
+    // 全局
     const addedGlobal = execSync(`${this.svn} propget svn:global-ignores .`, {
       encoding: "utf-8",
     });
@@ -227,18 +230,6 @@ class AutoCommit {
     }
   }
 
-  svnAddIgnored(callback) {
-    // 该方法可以独立出来作为单独的命令，供添加SVN忽略文件使用
-
-    // 全局
-    try {
-      this.svnAddIgnoreExec(callback);
-    } catch (err) {
-      this.svnInit();
-      this.svnAddIgnoreExec(callback);
-    }
-  }
-
   svnInit() {
     const checkoutQS = [
       {
@@ -273,8 +264,6 @@ class AutoCommit {
           stdio: "inherit",
         }
       );
-
-      console.log("🚀 ~ process.nextTick ~ this.svn:", this.svn);
     });
   }
 
