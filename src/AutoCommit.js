@@ -9,7 +9,7 @@ const fileUtils = require('./common/fileUtils');
 class AutoCommit {
   constructor(option = {}) {
     this.option = Object.assign({}, AutoCommit.__option, option);
-    this.svnExistCheck();
+    this.svnCheckExist();
   }
 
   static __option = {};
@@ -18,6 +18,7 @@ class AutoCommit {
   commentDefGit = '【GIT】提交代码变更';
   commentDefSvn = '【SVN】提交代码变更';
 
+  git = null;
   svn = null;
 
   register(programBuilder) {
@@ -205,16 +206,16 @@ class AutoCommit {
     }
   }
 
-  svnExistCheck() {
+  svnCheckExist() {
     try {
-      const exist = execSync(`${this.svn} --version`, {
+      const exist = execSync(`svn --version`, {
         encoding: 'utf-8',
       });
 
       if (exist.toLowerCase().indexOf('svn') > -1) {
         this.svn = 'svn';
       } else {
-        this.svn = fileUtils.getPath('../subversion/bin/svn.exe');
+        this.svn = fileUtils.getPath('../svn/bin/svn.exe');
         const exist = execSync(`${this.svn} --version`, {
           encoding: 'utf-8',
         });
