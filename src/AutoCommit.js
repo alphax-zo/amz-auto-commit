@@ -63,16 +63,16 @@ class AutoCommit {
         return;
       }
 
-      const commentQS = [
-        {
-          name: 'comment',
-          type: 'input',
-          message: chalk.magenta(`请输入备注/【SVN】提交日志:`),
-          default: this.commentDefSvn,
-        },
-      ];
-
       process.nextTick(async () => {
+        const commentQS = [
+          {
+            name: 'comment',
+            type: 'input',
+            message: chalk.magenta(`请输入备注/【SVN】提交日志:`),
+            default: this.commentDefSvn,
+          },
+        ];
+
         const { comment } = await inquirer.prompt(commentQS);
 
         execSync(`${this.svn} commit -m "feat: ${comment}"`, {
@@ -96,21 +96,23 @@ class AutoCommit {
         stdio: 'inherit',
       });
 
-      const commentQS = [
-        {
-          name: 'comment',
-          type: 'input',
-          message: chalk.magenta(`请输入备注/【GIT】提交日志:`),
-          default: this.commentDefGit,
-        },
-      ];
-
       process.nextTick(async () => {
-        const { comment } = await inquirer.prompt(commentQS);
+        if (!this.comment) {
+          const commentQS = [
+            {
+              name: 'comment',
+              type: 'input',
+              message: chalk.magenta(`请输入备注/【GIT】提交日志:`),
+              default: this.commentDefGit,
+            },
+          ];
 
-        this.comment = comment;
+          const { comment } = await inquirer.prompt(commentQS);
 
-        execSync(`git commit -m "feat: ${comment}"`, {
+          this.comment = comment;
+        }
+
+        execSync(`git commit -m "feat: ${this.comment}"`, {
           encoding: 'utf-8',
           stdio: 'inherit',
         });
@@ -118,6 +120,7 @@ class AutoCommit {
         const remote = execSync('git remote -v', {
           encoding: 'utf-8',
         });
+
         if (remote) {
           execSync('git pull', {
             encoding: 'utf-8',
@@ -312,9 +315,11 @@ class AutoCommit {
   exec() {
     program
       .option('-git, --auto-git', 'wether to use git', false)
+      .option('-m, --comment [comment]', 'comment words to commit', null)
       .allowUnknownOption(true)
       .parse(process.argv);
     const options = program.opts();
+    this.comment = comment;
     if (options.autoGit) {
       this.gitCheck();
     } else {
