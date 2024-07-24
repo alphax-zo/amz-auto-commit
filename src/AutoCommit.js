@@ -14,6 +14,7 @@ class AutoCommit {
 
   static __option = {};
 
+  type = 'feat';
   comment = null;
   commentDefGit = '【GIT】提交代码变更';
   commentDefSvn = '【SVN】提交代码变更';
@@ -23,6 +24,16 @@ class AutoCommit {
 
   register(programBuilder) {
     this.execBuilder = programBuilder;
+  }
+
+  treatComment(comment) {
+    this.comment = comment;
+    if (!comment || comment.indexOf(':') <= -1) return;
+
+    let tmps = comment.split(':');
+
+    this.type = tmps[0];
+    this.comment = tmps[1];
   }
 
   execSvnAutoCommit() {
@@ -53,13 +64,14 @@ class AutoCommit {
 
       if (this.comment) {
         this.comment = this.comment === this.commentDefGit ? this.commentDefSvn : this.comment;
-        execSync(`${this.svn} commit -m "feat: ${this.comment}"`, {
+        execSync(`${this.svn} commit -m "${this.type}: ${this.comment}"`, {
           encoding: 'utf-8',
           stdio: 'inherit',
         });
 
         if (typeof callback === 'function') callback();
         this.comment = null;
+        this.type = 'feat';
         return;
       }
 
@@ -74,13 +86,16 @@ class AutoCommit {
         ];
 
         const { comment } = await inquirer.prompt(commentQS);
+        this.treatComment(comment);
 
-        execSync(`${this.svn} commit -m "feat: ${comment}"`, {
+        execSync(`${this.svn} commit -m "${this.type}: ${this.comment}"`, {
           encoding: 'utf-8',
           stdio: 'inherit',
         });
 
         if (typeof callback === 'function') callback();
+        this.comment = null;
+        this.type = 'feat';
       });
     } catch (err) {
       console.log(chalk.red(err.message));
@@ -108,11 +123,10 @@ class AutoCommit {
           ];
 
           const { comment } = await inquirer.prompt(commentQS);
-
-          this.comment = comment;
+          this.treatComment(comment);
         }
 
-        execSync(`git commit -m "feat: ${this.comment}"`, {
+        execSync(`git commit -m "${this.type}: ${this.comment}"`, {
           encoding: 'utf-8',
           stdio: 'inherit',
         });
@@ -320,8 +334,8 @@ class AutoCommit {
       .parse(process.argv);
 
     const options = program.opts();
-    this.comment = options.comment;
-    
+    this.treatComment(options.comment);
+
     if (options.autoGit) {
       this.gitCheck();
     } else {
