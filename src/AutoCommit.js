@@ -318,8 +318,10 @@ class AutoCommit {
       .option('-m, --comment [comment]', 'comment words to commit', null)
       .allowUnknownOption(true)
       .parse(process.argv);
+
     const options = program.opts();
-    this.comment = comment;
+    this.comment = options.comment;
+    
     if (options.autoGit) {
       this.gitCheck();
     } else {
