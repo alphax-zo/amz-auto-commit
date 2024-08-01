@@ -52,12 +52,12 @@ class AutoCommit {
 
   async svnAutoCommit(callback) {
     try {
-      execSync(`${this.svn} update`, {
+      execSync(`${this.svn} add . --force`, {
         encoding: 'utf-8',
         stdio: 'inherit',
       });
 
-      execSync(`${this.svn} add . --force`, {
+      execSync(`${this.svn} update`, {
         encoding: 'utf-8',
         stdio: 'inherit',
       });
