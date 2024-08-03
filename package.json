@@ -1,6 +1,6 @@
 {
   "name": "amz-auto-commit",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Use command to commit code base on svn or git command",
   "main": "src/index.js",
   "scripts": {
